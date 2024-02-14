@@ -1,0 +1,54 @@
+# start browser: 
+# http://localhost
+# http://localhost/wp-login.php
+# phpmyadmin: http://localhost:8080 => wordpress/wordpress
+#
+# for a full "reset" (wordpress initial setup) delete the folders "mysql" and "wordpress" !
+#
+# Source:
+# https://gridscale.io/community/tutorials/dockerize-wordpress-docker-compose/
+
+version: '3.6'
+
+services:
+    db:
+        image: mysql:8.3.0 # mysql:latest 
+        volumes:
+          - ./mysql:/var/lib/mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: mypassword
+            MYSQL_DATABASE: wordpress
+            MYSQL_USER: wordpress
+            MYSQL_PASSWORD: wordpress
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        environment:
+          PMA_HOST: db
+          PMA_PORT: 3306
+          MYSQL_ROOT_PASSWORD: mypassword
+        ports:
+          - ${IP}:8080:80
+        links:
+          - db:db
+
+
+    wordpress:
+        image: wordpress:6.4.3 # wordpress:latest
+        depends_on:
+            - db
+        ports:
+            - 80:80
+        restart: always
+        environment:
+            WORDPRESS_DB_HOST: db:3306
+            WORDPRESS_DB_USER: wordpress
+            WORDPRESS_DB_PASSWORD: wordpress
+        volumes:
+            - ./wordpress/plugins:/var/www/html/wp-content/plugins
+            - ./wordpress/themes:/var/www/html/wp-content/themes
+            - ./wordpress/uploads:/var/www/html/wp-content/uploads
+volumes:
+    mysql:
+    wordpress:
